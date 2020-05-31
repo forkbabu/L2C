@@ -4,6 +4,31 @@ from torchvision import transforms
 from .sampler import RandSubClassSampler
 
 
+def IndianPines(batch_sz, num_workers=2):
+    
+    train_dataset = torchvision.datasets.MNIST(
+        root='data',
+        train=True,
+        download=True,
+        transform=transforms.Compose([
+            transforms.ToTensor(),
+            normalize
+        ]))
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_sz, shuffle=True, num_workers=num_workers)
+    train_loader.num_classes = 10
+
+    eval_dataset = torchvision.datasets.MNIST('data', train=False, transform=transforms.Compose([
+        transforms.ToTensor(),
+        normalize
+    ]))
+    eval_loader = torch.utils.data.DataLoader(eval_dataset, batch_size=batch_sz, shuffle=False, num_workers=num_workers)
+    eval_loader.num_classes = 10
+
+    return train_loader, eval_loader
+
+
+
+
 def MNIST(batch_sz, num_workers=2):
     normalize = transforms.Normalize(mean=(0.1307,), std=(0.3081,))
 
