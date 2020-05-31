@@ -15,7 +15,7 @@ dataset = 'IN'
 Dataset = dataset.upper()
 
 
-
+split = 0.95
 def load_dataset(Dataset):
     if Dataset == 'IN':
         mat_data = sio.loadmat('datasets/Indian_pines_corrected.mat')
