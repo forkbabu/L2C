@@ -133,8 +133,7 @@ def select_small_cubic(data_size, data_indices, whole_data, patch_length, padded
 
 
 
-def IndianPines(TRAIN_SIZE, train_indices, TEST_SIZE, test_indices, TOTAL_SIZE, total_indices, VAL_SIZE,
-                  whole_data, PATCH_LENGTH, padded_data, INPUT_DIMENSION, batch_size, gt):
+def IndianPines(batch_size, num_workers=2):
 
     gt_all = gt[total_indices] - 1
     y_train = gt[train_indices] - 1
@@ -164,13 +163,13 @@ def IndianPines(TRAIN_SIZE, train_indices, TEST_SIZE, test_indices, TOTAL_SIZE, 
         dataset=torch_dataset_train,  # torch TensorDataset format
         batch_size=batch_size,  # mini batch size
         shuffle=True,  # 要不要打乱数据 (打乱比较好)
-        num_workers=0,  # 多线程来读数据
+        num_workers=num_workers,  # 多线程来读数据
     )
     test_iter = Data.DataLoader(
         dataset=torch_dataset_test,  # torch TensorDataset format
         batch_size=batch_size,  # mini batch size
         shuffle=False,  # 要不要打乱数据 (打乱比较好)
-        num_workers=0,  # 多线程来读数据
+        num_workers=num_workers,  # 多线程来读数据
     )
     return train_iter, test_iter
 
