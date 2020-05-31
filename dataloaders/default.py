@@ -10,7 +10,7 @@ import math
 
 import numpy as np
 
-global Dataset  # UP,IN,KSC
+global Dataset  
 dataset = 'IN'
 Dataset = dataset.upper()
 
@@ -18,8 +18,8 @@ Dataset = dataset.upper()
 
 def load_dataset(Dataset):
     if Dataset == 'IN':
-        mat_data = sio.loadmat('../datasets/Indian_pines_corrected.mat')
-        mat_gt = sio.loadmat('../datasets/Indian_pines_gt.mat')
+        mat_data = sio.loadmat('datasets/Indian_pines_corrected.mat')
+        mat_gt = sio.loadmat('datasets/Indian_pines_gt.mat')
         data_hsi = mat_data['indian_pines_corrected']
         gt_hsi = mat_gt['indian_pines_gt']
         TOTAL_SIZE = 10249
@@ -27,8 +27,8 @@ def load_dataset(Dataset):
         TRAIN_SIZE = math.ceil(TOTAL_SIZE * VALIDATION_SPLIT)
 
     if Dataset == 'UP':
-        uPavia = sio.loadmat('../datasets/PaviaU.mat')
-        gt_uPavia = sio.loadmat('../datasets/PaviaU_gt.mat')
+        uPavia = sio.loadmat('datasets/PaviaU.mat')
+        gt_uPavia = sio.loadmat('datasets/PaviaU_gt.mat')
         data_hsi = uPavia['paviaU']
         gt_hsi = gt_uPavia['paviaU_gt']
         TOTAL_SIZE = 42776
@@ -36,8 +36,8 @@ def load_dataset(Dataset):
         TRAIN_SIZE = math.ceil(TOTAL_SIZE * VALIDATION_SPLIT)
 
     if Dataset == 'SV':
-        SV = sio.loadmat('../datasets/Salinas_corrected.mat')
-        gt_SV = sio.loadmat('../datasets/Salinas_gt.mat')
+        SV = sio.loadmat('datasets/Salinas_corrected.mat')
+        gt_SV = sio.loadmat('datasets/Salinas_gt.mat')
         data_hsi = SV['salinas_corrected']
         gt_hsi = gt_SV['salinas_gt']
         TOTAL_SIZE = 54129
