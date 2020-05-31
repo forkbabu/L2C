@@ -2,9 +2,90 @@ import torch
 import torchvision
 from torchvision import transforms
 from .sampler import RandSubClassSampler
+from operator import truediv
+import scipy.io as sio
+import torch
+import math
 
 import numpy as np
 
+global Dataset  # UP,IN,KSC
+dataset = 'IN'
+Dataset = dataset.upper()
+
+def load_dataset(Dataset):
+    if Dataset == 'IN':
+        mat_data = sio.loadmat('../datasets/Indian_pines_corrected.mat')
+        mat_gt = sio.loadmat('../datasets/Indian_pines_gt.mat')
+        data_hsi = mat_data['indian_pines_corrected']
+        gt_hsi = mat_gt['indian_pines_gt']
+        if not allband:
+            data_hsi = indian_transform(data_hsi,BANDLIST)
+        TOTAL_SIZE = 10249
+        VALIDATION_SPLIT = split
+        TRAIN_SIZE = math.ceil(TOTAL_SIZE * VALIDATION_SPLIT)
+
+    if Dataset == 'UP':
+        uPavia = sio.loadmat('../datasets/PaviaU.mat')
+        gt_uPavia = sio.loadmat('../datasets/PaviaU_gt.mat')
+        data_hsi = uPavia['paviaU']
+        gt_hsi = gt_uPavia['paviaU_gt']
+        data_hsi = pavia_transform(data_hsi,BANDLIST)
+        TOTAL_SIZE = 42776
+        VALIDATION_SPLIT = split
+        TRAIN_SIZE = math.ceil(TOTAL_SIZE * VALIDATION_SPLIT)
+
+    if Dataset == 'SV':
+        SV = sio.loadmat('../datasets/Salinas_corrected.mat')
+        gt_SV = sio.loadmat('../datasets/Salinas_gt.mat')
+        data_hsi = SV['salinas_corrected']
+        gt_hsi = gt_SV['salinas_gt']
+        data_hsi = salinas_transform(data_hsi,BANDLIST)
+        TOTAL_SIZE = 54129
+        VALIDATION_SPLIT = split
+        TRAIN_SIZE = math.ceil(TOTAL_SIZE * VALIDATION_SPLIT)
+    
+    return data_hsi, gt_hsi, TOTAL_SIZE, TRAIN_SIZE, VALIDATION_SPLIT,filename
+
+
+
+data_hsi, gt_hsi, TOTAL_SIZE, TRAIN_SIZE,VALIDATION_SPLIT,method = load_dataset(Dataset)
+
+print(data_hsi.shape)
+image_x, image_y, BAND = data_hsi.shape
+data = data_hsi.reshape(np.prod(data_hsi.shape[:2]), np.prod(data_hsi.shape[2:]))
+gt = gt_hsi.reshape(np.prod(gt_hsi.shape[:2]),)
+CLASSES_NUM = max(gt)
+print('The class numbers of the HSI data is:', CLASSES_NUM)
+
+print('-----Importing Setting Parameters-----')
+ITER = int(input("Enter num of iterations "))
+PATCH_LENGTH = 3
+# number of training samples per class
+#lr, num_epochs, batch_size = 0.0001, 200, 32
+lr, num_epochs, batch_size = 0.0005, 200, 16
+loss = torch.nn.CrossEntropyLoss()
+
+img_rows = 2*PATCH_LENGTH+1
+img_cols = 2*PATCH_LENGTH+1
+img_channels = data_hsi.shape[2]
+INPUT_DIMENSION = data_hsi.shape[2]
+ALL_SIZE = data_hsi.shape[0] * data_hsi.shape[1]
+VAL_SIZE = int(TRAIN_SIZE)
+TEST_SIZE = TOTAL_SIZE - TRAIN_SIZE
+
+
+KAPPA = []
+OA = []
+AA = []
+TRAINING_TIME = []
+TESTING_TIME = []
+ELEMENT_ACC = np.zeros((ITER, CLASSES_NUM))
+
+data = preprocessing.scale(data)
+data_ = data.reshape(data_hsi.shape[0], data_hsi.shape[1], data_hsi.shape[2])
+whole_data = data_
+padded_data = np.lib.pad(whole_data, ((PATCH_LENGTH, PATCH_LENGTH), (PATCH_LENGTH, PATCH_LENGTH), (0, 0)),'constant', constant_values=0)
 
 def index_assignment(index, row, col, pad_length):
     new_assign = {}
@@ -32,6 +113,10 @@ def select_small_cubic(data_size, data_indices, whole_data, patch_length, padded
     for i in range(len(data_assign)):
         small_cubic_data[i] = select_patch(padded_data, data_assign[i][0], data_assign[i][1], patch_length)
     return small_cubic_data
+
+
+
+
 
 def IndianPines(TRAIN_SIZE, train_indices, TEST_SIZE, test_indices, TOTAL_SIZE, total_indices, VAL_SIZE,
                   whole_data, PATCH_LENGTH, padded_data, INPUT_DIMENSION, batch_size, gt):
