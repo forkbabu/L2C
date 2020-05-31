@@ -5,6 +5,7 @@ from .sampler import RandSubClassSampler
 from operator import truediv
 import scipy.io as sio
 import torch
+from sklearn import metrics, preprocessing
 import math
 
 import numpy as np
@@ -13,14 +14,14 @@ global Dataset  # UP,IN,KSC
 dataset = 'IN'
 Dataset = dataset.upper()
 
+
+
 def load_dataset(Dataset):
     if Dataset == 'IN':
         mat_data = sio.loadmat('../datasets/Indian_pines_corrected.mat')
         mat_gt = sio.loadmat('../datasets/Indian_pines_gt.mat')
         data_hsi = mat_data['indian_pines_corrected']
         gt_hsi = mat_gt['indian_pines_gt']
-        if not allband:
-            data_hsi = indian_transform(data_hsi,BANDLIST)
         TOTAL_SIZE = 10249
         VALIDATION_SPLIT = split
         TRAIN_SIZE = math.ceil(TOTAL_SIZE * VALIDATION_SPLIT)
@@ -30,7 +31,6 @@ def load_dataset(Dataset):
         gt_uPavia = sio.loadmat('../datasets/PaviaU_gt.mat')
         data_hsi = uPavia['paviaU']
         gt_hsi = gt_uPavia['paviaU_gt']
-        data_hsi = pavia_transform(data_hsi,BANDLIST)
         TOTAL_SIZE = 42776
         VALIDATION_SPLIT = split
         TRAIN_SIZE = math.ceil(TOTAL_SIZE * VALIDATION_SPLIT)
@@ -40,31 +40,23 @@ def load_dataset(Dataset):
         gt_SV = sio.loadmat('../datasets/Salinas_gt.mat')
         data_hsi = SV['salinas_corrected']
         gt_hsi = gt_SV['salinas_gt']
-        data_hsi = salinas_transform(data_hsi,BANDLIST)
         TOTAL_SIZE = 54129
         VALIDATION_SPLIT = split
         TRAIN_SIZE = math.ceil(TOTAL_SIZE * VALIDATION_SPLIT)
     
-    return data_hsi, gt_hsi, TOTAL_SIZE, TRAIN_SIZE, VALIDATION_SPLIT,filename
+    return data_hsi, gt_hsi, TOTAL_SIZE, TRAIN_SIZE, VALIDATION_SPLIT
 
 
 
-data_hsi, gt_hsi, TOTAL_SIZE, TRAIN_SIZE,VALIDATION_SPLIT,method = load_dataset(Dataset)
+data_hsi, gt_hsi, TOTAL_SIZE, TRAIN_SIZE,VALIDATION_SPLIT= load_dataset(Dataset)
 
-print(data_hsi.shape)
+
 image_x, image_y, BAND = data_hsi.shape
 data = data_hsi.reshape(np.prod(data_hsi.shape[:2]), np.prod(data_hsi.shape[2:]))
 gt = gt_hsi.reshape(np.prod(gt_hsi.shape[:2]),)
 CLASSES_NUM = max(gt)
-print('The class numbers of the HSI data is:', CLASSES_NUM)
+PATCH_LENGTH = 5
 
-print('-----Importing Setting Parameters-----')
-ITER = int(input("Enter num of iterations "))
-PATCH_LENGTH = 3
-# number of training samples per class
-#lr, num_epochs, batch_size = 0.0001, 200, 32
-lr, num_epochs, batch_size = 0.0005, 200, 16
-loss = torch.nn.CrossEntropyLoss()
 
 img_rows = 2*PATCH_LENGTH+1
 img_cols = 2*PATCH_LENGTH+1
@@ -73,20 +65,15 @@ INPUT_DIMENSION = data_hsi.shape[2]
 ALL_SIZE = data_hsi.shape[0] * data_hsi.shape[1]
 VAL_SIZE = int(TRAIN_SIZE)
 TEST_SIZE = TOTAL_SIZE - TRAIN_SIZE
-
-
-KAPPA = []
-OA = []
-AA = []
-TRAINING_TIME = []
-TESTING_TIME = []
-ELEMENT_ACC = np.zeros((ITER, CLASSES_NUM))
-
 data = preprocessing.scale(data)
 data_ = data.reshape(data_hsi.shape[0], data_hsi.shape[1], data_hsi.shape[2])
 whole_data = data_
 padded_data = np.lib.pad(whole_data, ((PATCH_LENGTH, PATCH_LENGTH), (PATCH_LENGTH, PATCH_LENGTH), (0, 0)),'constant', constant_values=0)
-
+train_indices, test_indices = sampling(VALIDATION_SPLIT, gt)
+_, total_indices = sampling(1, gt)
+TRAIN_SIZE = len(train_indices)
+TEST_SIZE = TOTAL_SIZE - TRAIN_SIZE
+VAL_SIZE = int(TRAIN_SIZE)
 def index_assignment(index, row, col, pad_length):
     new_assign = {}
     for counter, value in enumerate(index):
