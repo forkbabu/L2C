@@ -69,6 +69,34 @@ data = preprocessing.scale(data)
 data_ = data.reshape(data_hsi.shape[0], data_hsi.shape[1], data_hsi.shape[2])
 whole_data = data_
 padded_data = np.lib.pad(whole_data, ((PATCH_LENGTH, PATCH_LENGTH), (PATCH_LENGTH, PATCH_LENGTH), (0, 0)),'constant', constant_values=0)
+
+def sampling(proportion, ground_truth):
+    train = {}
+    test = {}
+    labels_loc = {}
+    m = max(ground_truth)
+    for i in range(m):
+        indexes = [j for j, x in enumerate(ground_truth.ravel().tolist()) if x == i + 1]
+        np.random.shuffle(indexes)
+        labels_loc[i] = indexes
+        if proportion != 1:
+            nb_val = max(int((1 - proportion) * len(indexes)), 3)
+        else:
+            nb_val = 0
+        # print(i, nb_val, indexes[:nb_val])
+        # train[i] = indexes[:-nb_val]
+        # test[i] = indexes[-nb_val:]
+        train[i] = indexes[:nb_val]
+        test[i] = indexes[nb_val:]
+    train_indexes = []
+    test_indexes = []
+    for i in range(m):
+        train_indexes += train[i]
+        test_indexes += test[i]
+    np.random.shuffle(train_indexes)
+    np.random.shuffle(test_indexes)
+    return train_indexes, test_indexes
+
 train_indices, test_indices = sampling(VALIDATION_SPLIT, gt)
 _, total_indices = sampling(1, gt)
 TRAIN_SIZE = len(train_indices)
