@@ -7,7 +7,7 @@ import scipy.io as sio
 import torch
 from sklearn import metrics, preprocessing
 import math
-
+import torch.utils.data as Data
 import numpy as np
 
 global Dataset  
