@@ -171,6 +171,8 @@ def IndianPines(batch_size, num_workers=2):
         shuffle=False,  # 要不要打乱数据 (打乱比较好)
         num_workers=num_workers,  # 多线程来读数据
     )
+    train_iter.num_classes = 16
+    test_iter.num_classes = 16
     return train_iter, test_iter
 
 
