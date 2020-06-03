@@ -90,6 +90,7 @@ class PreActResNet(nn.Module):
 
     def forward(self, x):
         x = x.squeeze(1)
+        x = x.permute(0,2,3,1)
         print(x.shape)
         x = self.features(x)
         x = F.adaptive_avg_pool2d(x, 1)
