@@ -57,7 +57,7 @@ class PreActBottleneck(nn.Module):
 
 
 class PreActResNet(nn.Module):
-    def __init__(self, block, num_blocks, num_classes=10, in_channels=3):
+    def __init__(self, block, num_blocks, num_classes=16, in_channels=200):
         super(PreActResNet, self).__init__()
         self.in_planes = 64
 
@@ -89,6 +89,8 @@ class PreActResNet(nn.Module):
         return x
 
     def forward(self, x):
+        x = x.squeeze(1)
+        print(x.shape)
         x = self.features(x)
         x = F.adaptive_avg_pool2d(x, 1)
         x = self.logits(x.view(x.size(0), -1))
@@ -96,7 +98,7 @@ class PreActResNet(nn.Module):
 
 
 def ResNet18S(out_dim):
-    return PreActResNet(PreActBlock, [2,2,2,2], num_classes=out_dim, in_channels=1)
+    return PreActResNet(PreActBlock, [2,2,2,2], num_classes=out_dim, in_channels=200)
 
 def ResNet18(out_dim):
     return PreActResNet(PreActBlock, [2,2,2,2], num_classes=out_dim)
