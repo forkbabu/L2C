@@ -38,6 +38,7 @@ class LeNet(nn.Module):
         return x
 
     def forward(self, x):
+        print(x.shape)
         x = self.features(x)
         x = self.logits(x)
         return x
@@ -48,4 +49,5 @@ def LeNet32(out_dim):  # LeNet with color input
 
 
 def LeNetC(out_dim):  # LeNet with color input
+    print('doing')
     return LeNet(out_dim=out_dim, in_channel=3, img_sz=32)
