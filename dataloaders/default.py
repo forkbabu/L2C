@@ -157,6 +157,9 @@ def IndianPines(batch_size, num_workers=2):
     x1_tensor_test = torch.from_numpy(x_test).type(torch.FloatTensor).unsqueeze(1)
     y1_tensor_test = torch.from_numpy(y_test).type(torch.FloatTensor)
     torch_dataset_test = Data.TensorDataset(x1_tensor_test,y1_tensor_test)
+    
+    torch.save(torch_dataset_train,'trainDataset.pth')
+    torch.save(torch_dataset_test,'testDataset.pth')
 
 
     train_iter = Data.DataLoader(
